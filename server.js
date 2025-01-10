@@ -1,9 +1,13 @@
 const express = require("express");
 const axios = require("axios");
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
 const PORT = 3000;
+
+// Enable CORS
+app.use(cors());
 
 // GitHub Repository Details
 const GITHUB_API_URL =
