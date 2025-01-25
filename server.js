@@ -44,7 +44,7 @@ app.get("/json", async (req, res) => {
 });
 
 // Define the forecast endpoint
-app.get('/api/forecast', async (req, res) => {
+app.get('/forecast', async (req, res) => {
     try {
         // Fetch data from Visual Crossing Weather API
         const response = await axios.get('https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/norwich', {
