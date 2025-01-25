@@ -13,6 +13,7 @@ app.use(cors());
 const GITHUB_API_URL =
   "https://api.github.com/repos/HuntingStats378/weather/contents/norwich.json";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Set your GitHub token in the .env file
+const FORECAST_TOKEN = process.env.FORECAST_TOKEN;
 
 app.get("/json", async (req, res) => {
   try {
@@ -40,6 +41,27 @@ app.get("/json", async (req, res) => {
     console.error("Error fetching data:", error.message);
     res.status(500).json({ error: "Failed to fetch data from GitHub" });
   }
+});
+
+// Define the forecast endpoint
+app.get('/api/forecast', async (req, res) => {
+    try {
+        // Fetch data from Visual Crossing Weather API
+        const response = await axios.get('https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/norwich', {
+            params: {
+                unitGroup: 'metric',
+                include: 'hours,current',
+                key: FORECAST_TOKEN,
+                contentType: 'json'
+            }
+        });
+
+        // Send the fetched JSON content as the response
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching weather data:', error.message);
+        res.status(500).json({ error: 'Failed to fetch weather data' });
+    }
 });
 
 app.listen(PORT, () => {
