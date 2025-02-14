@@ -10,23 +10,47 @@ const PORT = 3000;
 app.use(cors());
 
 // GitHub Repository Details
-const GITHUB_API_URL =
-  "https://api.github.com/repos/HuntingStats378/weather/contents/norwich.json";
+const GITHUB_REPO = process.env.GITHUB_REPO;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Set your GitHub token in the .env file
 const FORECAST_TOKEN = process.env.FORECAST_TOKEN;
+const GITHUB_FILE_PATHS = process.env.GITHUB_FILE_PATH; // Comma-separated paths
+
+// Fetch data from multiple GitHub files
+const fetchGitHubData = async (filePaths) => {
+    try {
+        const fileFetchPromises = filePaths.map(async (filePath) => {
+            const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${filePath}`;
+            const response = await axios.get(url, {
+                headers: {
+                    Authorization: `token ${GITHUB_TOKEN}`,
+                    Accept: "application/vnd.github.v3.raw",
+                },
+            });
+            return response.data; // JSON content of the file
+        });
+
+        // Wait for all file fetches to complete
+        const filesData = await Promise.all(fileFetchPromises);
+
+        // Combine all data into a single array
+        return filesData.flat();
+    } catch (error) {
+        console.error("Error fetching data from GitHub:", error.message);
+        throw new Error("Failed to fetch data from GitHub");
+    }
+};
 
 app.get("/json", async (req, res) => {
   try {
     const { limit } = req.query; // Optional query parameter to specify the number of data points
-    const response = await axios.get(GITHUB_API_URL, {
-      headers: {
-        Authorization: `Bearer ${GITHUB_TOKEN}`,
-        Accept: "application/vnd.github.v3.raw",
-      },
-    });
+    // Split file paths from .env into an array
+        const filePaths = GITHUB_FILE_PATHS.split(',');
+
+        // Fetch data from GitHub files
+        let githubData = await fetchGitHubData(filePaths);
 
     // If the response is a Buffer or String, parse it into JSON
-    const rawData = response.data;
+    const rawData = githubData;
     const parsedData =
       typeof rawData === "string" ? JSON.parse(rawData) : rawData;
 
